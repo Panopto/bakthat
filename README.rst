@@ -1,3 +1,5 @@
+UPDATE: Fixed an issue where Boto raises a socket.error exception by adding re-try logic.
+
 =======
 Bakthat
 =======

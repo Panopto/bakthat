@@ -107,7 +107,15 @@ class S3Backend(BakthatBackend):
         upload_kwargs = {"reduced_redundancy": kwargs.get("s3_reduced_redundancy", False)}
         if kwargs.get("cb", True):
             upload_kwargs = dict(cb=self.cb, num_cb=10)
-        k.set_contents_from_filename(filename, **upload_kwargs)
+        for _ in range(5):
+            last_ex = None
+            try:
+                k.set_contents_from_filename(filename, **upload_kwargs)
+                break
+            except socket.error as ex:
+                last_ex = ex
+        else:
+            raise last_ex
         k.set_acl("private")
 
     def ls(self):

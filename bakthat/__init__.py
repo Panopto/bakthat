@@ -50,6 +50,8 @@ STORAGE_BACKEND = dict(s3=S3Backend, glacier=GlacierBackend, swift=SwiftBackend)
 def _get_store_backend(conf, destination=None, profile="default"):
     if not isinstance(conf, dict):
         conf = load_config(conf)
+    if not isinstance(conf, dict) or len(conf) is 0:
+        raise ValueError("Failed to get configuration parameters. Maybe the config file wasn't found?")
     conf = conf.get(profile)
     setup_plugins(conf)
     if not destination:

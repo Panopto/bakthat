@@ -25,6 +25,8 @@ def load_config(config_file=CONFIG_FILE):
         config = yaml.load(open(config_file))
         if config:
             log.debug("Config loaded")
+    else:
+        log.warn("Failed to find config file.")
     return config
 
 # Read default config file

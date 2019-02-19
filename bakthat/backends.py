@@ -7,11 +7,8 @@ import json
 import socket
 import httplib
 
-import boto
-from boto.s3.key import Key
+import boto3
 import math
-from boto.glacier.exceptions import UnexpectedHTTPResponseError
-from boto.exception import S3ResponseError
 
 from bakthat.conf import config, DEFAULT_LOCATION, CONFIG_FILE
 from bakthat.models import Inventory, Jobs
@@ -69,54 +66,47 @@ class S3Backend(BakthatBackend):
     def __init__(self, conf={}, profile="default"):
         BakthatBackend.__init__(self, conf, profile)
 
-        con = boto.connect_s3(self.conf["access_key"], self.conf["secret_key"])
-
         region_name = self.conf["region_name"]
         if region_name == DEFAULT_LOCATION:
             region_name = ""
 
-        try:
-            self.bucket = con.get_bucket(self.conf["s3_bucket"])
-        except S3ResponseError, e:
-            if e.code == "NoSuchBucket":
-                self.bucket = con.create_bucket(self.conf["s3_bucket"], location=region_name)
-            else:
-                raise e
+        self.client = boto3.client(
+            's3',
+            region_name=region_name,
+            aws_access_key_id=self.conf["access_key"],
+            aws_secret_access_key=self.conf["secret_key"])
+
+        self.bucket = self.conf["s3_bucket"]
 
         self.container = self.conf["s3_bucket"]
         self.container_key = "s3_bucket"
 
     def download(self, keyname):
-        k = Key(self.bucket)
-        k.key = keyname
-
+        
         encrypted_out = tempfile.TemporaryFile()
-        k.get_contents_to_file(encrypted_out)
+
+        self.client.download_file(
+            Bucket=self.bucket,
+            Key=keyname,
+            Filename=encrypted_out.name)
+
         encrypted_out.seek(0)
 
         return encrypted_out
 
-    def cb(self, complete, total):
+    def cb(self, remaining):
         """Upload callback to log upload percentage."""
-        percent = int(complete * 100.0 / total)
+        percent = int((self.total - remaining) * 100.0 / self.total)
         log.info("Upload completion: {0}%".format(percent))
 
     def upload(self, keyname, filename, **kwargs):
-        k = Key(self.bucket)
-        k.key = keyname
-        upload_kwargs = {"reduced_redundancy": kwargs.get("s3_reduced_redundancy", False)}
-        if kwargs.get("cb", True):
-            upload_kwargs = dict(cb=self.cb, num_cb=10)
-        for _ in range(5):
-            last_ex = None
-            try:
-                k.set_contents_from_filename(filename, **upload_kwargs)
-                break
-            except socket.error as ex:
-                last_ex = ex
-        else:
-            raise last_ex
-        k.set_acl("private")
+        self.total = os.stat(filename).st_size
+        
+        self.client.upload_file(
+            filename,
+            self.bucket,
+            keyname,
+            Callback=self.cb)
 
     def ls(self):
         return [key.name for key in self.bucket.get_all_keys()]

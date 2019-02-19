@@ -83,16 +83,15 @@ class S3Backend(BakthatBackend):
 
     def download(self, keyname):
         
-        encrypted_out = tempfile.TemporaryFile()
+        with tempfile.TemporaryFile() as encrypted_out:
+            encrypted_out_filename = encrypted_out.name
 
         self.client.download_file(
             Bucket=self.bucket,
             Key=keyname,
-            Filename=encrypted_out.name)
+            Filename=encrypted_out_filename)
 
-        encrypted_out.seek(0)
-
-        return encrypted_out
+        return open(encrypted_out_filename, 'rb')
 
     def cb(self, remaining):
         """Upload callback to log upload percentage."""

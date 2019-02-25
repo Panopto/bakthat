@@ -252,7 +252,7 @@ Contributors
 
 - Eric Chamberlain
 - Darius Braziunas
-- Sławomir Żak
+- Slawomir Zak
 - Andreyev Dias de Melo
 - Jake McGraw
 - You Yamagata

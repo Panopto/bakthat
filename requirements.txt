@@ -1,6 +1,6 @@
 peewee
 beefish
-boto
+boto3
 aaargh
 grandfatherson
 PyYaml

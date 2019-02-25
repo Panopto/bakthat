@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name="bakthat",
-    version="0.6.2",
+    version="0.7.0",
     author="Thomas Sileo",
     author_email="thomas.sileo@gmail.com",
     description="Bakthat is a MIT licensed backup framework written in Python, it's both a command line tool and a Python module that helps you manage backups on Amazon S3/Glacier and OpenStack Swift. It automatically compress, encrypt (symmetric encryption) and upload your files.",
@@ -16,7 +16,18 @@ setup(
     url="http://docs.bakthat.io",
     packages=find_packages(exclude=['ez_setup', 'tests', 'tests.*']),
     long_description=read('README.rst'),
-    install_requires=["aaargh", "boto", "pycrypto", "beefish", "grandfatherson", "peewee", "byteformat", "pyyaml", "sh", "requests", "events"],
+    install_requires=[
+        "aaargh",
+        "boto3",
+        "pycrypto",
+        "beefish",
+        "grandfatherson",
+        "peewee==2.8.5",
+        "byteformat",
+        "pyyaml",
+        "sh",
+        "requests",
+        "events"],
     entry_points={'console_scripts': ["bakthat = bakthat:main"]},
     classifiers=[
         "Development Status :: 4 - Beta",

@@ -29,7 +29,7 @@ from bakthat.models import Backups
 from bakthat.sync import BakSyncer, bakmanager_hook, bakmanager_periodic_backups
 from bakthat.plugin import setup_plugins, plugin_setup
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 app = aaargh.App(description="Compress, encrypt and upload files directly to Amazon S3/Glacier/Swift.")
 
@@ -273,12 +273,12 @@ def backup(filename=os.getcwd(), destination=None, profile="default", config=CON
                 _exclude = _get_exclude(efile)
                 log.info("Using {0} to exclude files.".format(efile))
 
-    arcname = filename.strip('/').split('/')[-1]
+    arcname = filename.strip(os.sep).split(os.sep)[-1]
     now = datetime.utcnow()
     date_component = now.strftime("%Y%m%d%H%M%S")
     stored_filename = backup_file_fmt.format(arcname, date_component)
 
-    backup_date = int(now.strftime("%s"))
+    backup_date = int((now - datetime(1970, 1, 1)).total_seconds())
     backup_data = dict(filename=kwargs.get("custom_filename", arcname),
                        backup_date=backup_date,
                        last_updated=backup_date,
